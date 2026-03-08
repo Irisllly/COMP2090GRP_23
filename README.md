@@ -1,4 +1,4 @@
-# COMP2090 course project
+# COMP2090 course project（GRP_23）
 Task1: Board Inventory and Order Management System
 1.Overview:
     Task 1 is a desktop application developed in Python using Object‑Oriented Programming. It helps a board trading company manage its board inventory and customer orders. Users can add different types of boards (brand, colour, factory) to the library, create orders, add boards to orders (with quantity), delete boards from orders, and change order status. All data is saved persistently in JSON files.
