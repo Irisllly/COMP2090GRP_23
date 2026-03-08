@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Board Procurement Summary · Union-Find Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            background: #f5f7fa;
+        }
+        h1 {
+            color: #1e3a5f;
+            text-align: center;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px #ccc;
+            transition: 0.2s;
+        }
+        .load-btn {
+            background: #2d5a8c;
+        }
+        #orderContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        .order-card {
+            width: 200px;
+            padding: 15px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px #ccc;
+            border: 1px solid #e9ecef;
+            text-align: left;
+        }
+        .order-card strong {
+            font-size: 18px;
+            color: #1e293b;
+        }
+        .order-card p {
+            margin: 8px 0 0;
+            color: #475569;
+        }
+        #summaryContainer {
+            margin-top: 40px;
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 10px 25px #ccc;
+        }
+        #summaryContainer h2 {
+            color: #1e3a5f;
+            margin-top: 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+        th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .order-badge {
+            display: inline-block;
+            background: #e9f0ff;
+            color: #1e3a5f;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 16px;
+            margin: 3px;
+            border: 1px solid #bdd3ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 Board Procurement Summary (based on Task1 data)</h1>
+
+    <div class="button-group">
+        <button class="load-btn" onclick="loadFromFile()">📁 Load Task1 Data</button>
+        <button onclick="groupOrders()">🔍 Group by Brand+Color</button>
+    </div>
+
+    <!-- Order cards container -->
+    <div id="orderContainer"></div>
+
+    <!-- Summary container -->
+    <div id="summaryContainer">
+        <h2>📊 Summary</h2>
+        <div id="summaryContent">Please load Task1 data first, then click the group button.</div>
+    </div>
+
+    <script>
+        // ---------- Union-Find implementation ----------
+        class UnionFind {
+            constructor(size) {
+                this.parent = Array.from({ length: size }, (_, i) => i);
+            }
+            find(x) {
+                if (this.parent[x] !== x) {
+                    this.parent[x] = this.find(this.parent[x]);
+                }
+                return this.parent[x];
+            }
+            union(x, y) {
+                const rootX = this.find(x);
+                const rootY = this.find(y);
+                if (rootX !== rootY) {
+                    this.parent[rootY] = rootX;
+                }
+            }
+        }
+
+        // ---------- Global data storage ----------
+        let orders = [];
+
+        // ---------- Display order cards ----------
+        function showOrders() {
+            const container = document.getElementById("orderContainer");
+            container.innerHTML = '';
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666;">No data. Please load a file.</p>';
+                return;
+            }
+            orders.forEach((order, index) => {
+                const card = document.createElement("div");
+                card.className = "order-card";
+                card.id = "order-" + index;
+                card.innerHTML = `
+                    <strong>${order.community} ${order.room}</strong>
+                    <p>🏷️ Brand: ${order.brand}</p>
+                    <p>🎨 Color: ${order.color}</p>
+                    <p>🔢 Qty: ${order.quantity}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ---------- Load JSON file from disk ----------
+        function loadFromFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        // Simple validation: must be an array and contain expected fields
+                        if (Array.isArray(data) && data.length > 0 && data[0].brand) {
+                            orders = data;
+                            showOrders();
+                            document.getElementById('summaryContent').innerHTML = 'Data loaded. Click group button to see summary.';
+                            // Reset card colors (if any)
+                            document.querySelectorAll('.order-card').forEach(card => {
+                                card.style.backgroundColor = '';
+                            });
+                        } else {
+                            alert('Invalid data format. Please ensure each object has brand, color, quantity, etc.');
+                        }
+                    } catch (err) {
+                        alert('Failed to parse JSON: ' + err);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ---------- Group orders by brand+color and show summary ----------
+        function groupOrders() {
+            if (orders.length === 0) {
+                alert('Please load a data file first.');
+                return;
+            }
+
+            const n = orders.length;
+            const uf = new UnionFind(n);
+
+            // 1. Union orders that share the same brand+color (for summary table)
+            const keyToIndices = {};
+            orders.forEach((order, idx) => {
+                const key = order.brand + '|' + order.color;
+                if (!keyToIndices[key]) keyToIndices[key] = [];
+                keyToIndices[key].push(idx);
+            });
+
+            for (let key in keyToIndices) {
+                const indices = keyToIndices[key];
+                if (indices.length > 1) {
+                    const first = indices[0];
+                    for (let i = 1; i < indices.length; i++) {
+                        uf.union(first, indices[i]);
+                    }
+                }
+            }
+
+            // 2. Color cards by order (same community+room = same color)
+            const colors = ["#cfe2ff", "#d1f7e1", "#ffe6cc", "#f9d8d8", "#e0d4f7", "#d9d2f0"];
+            const orderColorMap = {};
+            let colorIndex = 0;
+            orders.forEach((order, i) => {
+                const orderKey = order.community + '|' + order.room;
+                if (!orderColorMap[orderKey]) {
+                    orderColorMap[orderKey] = colors[colorIndex % colors.length];
+                    colorIndex++;
+                }
+                const card = document.getElementById("order-" + i);
+                if (card) card.style.backgroundColor = orderColorMap[orderKey];
+            });
+
+            // 3. Build summary data
+            const summaryMap = {};
+            orders.forEach((order, idx) => {
+                const key = order.brand + '|' + order.color;
+                if (!summaryMap[key]) {
+                    summaryMap[key] = {
+                        brand: order.brand,
+                        color: order.color,
+                        total: 0,
+                        ordersList: []
+                    };
+                }
+                summaryMap[key].total += order.quantity;
+                const orderDesc = `${order.community} ${order.room}`;
+                if (!summaryMap[key].ordersList.includes(orderDesc)) {
+                    summaryMap[key].ordersList.push(orderDesc);
+                }
+            });
+
+            const summary = Object.values(summaryMap);
+            renderSummary(summary);
+        }
+
+        // ---------- Render summary table ----------
+        function renderSummary(summary) {
+            const contentDiv = document.getElementById("summaryContent");
+            if (summary.length === 0) {
+                contentDiv.innerHTML = "No summary data.";
+                return;
+            }
+
+            let html = '<table><tr><th>Brand</th><th>Color</th><th>Total Qty</th><th>Orders</th></tr>';
+            summary.forEach(item => {
+                const ordersHtml = item.ordersList.map(desc => `<span class="order-badge">${desc}</span>`).join(' ');
+                html += `<tr>
+                    <td><strong>${item.brand}</strong></td>
+                    <td>${item.color}</td>
+                    <td style="font-weight:600;">${item.total}</td>
+                    <td>${ordersHtml}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            contentDiv.innerHTML = html;
+        }
+
+        // Initial display (prompt to load)
+        showOrders();
+    </script>
+</body>
+</html>
