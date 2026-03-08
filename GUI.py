@@ -9,7 +9,7 @@ window=tk.Tk()
 window.title("Board Library Management System")
 window.geometry("900x700")   #The size of window
 
-####scroll==============================滑块部分====================
+####scroll==============================Scrollbar====================
 canvas = tk.Canvas(window)
 scroll = ttk.Scrollbar(window, orient="vertical", command=canvas.yview)
 scroll.pack(side="right", fill="y")
@@ -25,8 +25,8 @@ board_lib=BoardLibrary()
 orderMgr=OrderManagement()
 
 
-####order function==============================订单函数====================
-#refresh更新
+####order function==============================order function====================
+#refresh
 def refresh_orderList():
     orderListbox.delete(0,tk.END)
     if not orderMgr.orderList:
@@ -36,7 +36,7 @@ def refresh_orderList():
         displayText=f"{i.community}|{i.roomNum}|{i.status}|Board:{board_count}"
         orderListbox.insert(tk.END,displayText)
 
-#create创建
+#create
 def create_order():
     commnity=entry_com.get().strip()
     roomnum=entry_roomnum.get().strip()
@@ -51,7 +51,7 @@ def create_order():
     refresh_orderList()
     messagebox.showinfo("Success","Order Created!")
 
-#delete删除
+#delete
 def delete_order():
     selected=orderListbox.curselection()
     if not selected:
@@ -66,7 +66,7 @@ def delete_order():
         messagebox.showerror("Error","Failed to delete order!")
    
 
-#change更改
+#change
 def change_order():
     s=orderListbox.curselection()
     if not s:
@@ -115,21 +115,21 @@ def export():
         for board in order.boardList:
             export_data.append({
                 "community": order.community,
-                "room": order.roomNum,        # 注意字段名：Task2 期望的是 "room"
+                "room": order.roomNum,     
                 "brand": board["brand"],
                 "color": board["color"],
                 "quantity": board.get("quantity", 1)
             })
-    # 保存为 JSON 文件
+    # save as  JSON file
     with open("task1_orders.json", "w", encoding="utf-8") as f:
         json.dump(export_data, f, ensure_ascii=False, indent=2)
-    messagebox.showinfo("导出成功", f"已导出 {len(export_data)} 条板材记录到 task1_orders.json")
+    messagebox.showinfo("Export successfully", f"Exported {len(export_data)} plates are recorded in the  task1_orders.json")
 #=================================================================================
 
 
 
 ####Board function ==============================================
-#refresh board更新板材列表
+#refresh board
 def refresh_boardList():
     boardListbox.delete(0,tk.END)
     #get all board
@@ -138,7 +138,7 @@ def refresh_boardList():
         showText="Brand: "+b.brand+"|Color: "+b.color+"|Factory: "+b.factory
         boardListbox.insert(tk.END,showText)
 
-#add board新增板材种类
+#add board
 def add_board():
     #1.get the conntent in input box
     brand=entry_brand.get().strip()
@@ -161,7 +161,7 @@ def add_board():
     else:
         messagebox.showwarning("Warning","This Board already exists!")
 
-#delete board删除板材
+#delete board
 def delboard():
     selected=boardListbox.curselection()
     if not selected:
@@ -178,7 +178,7 @@ def delboard():
 
 
 
-####add board to order function==============================加板函数====================
+####add board to order function==================================================
 def addBtoO():
     #1.get the selected order and board
     selectedOrder=orderListbox.curselection()
@@ -193,8 +193,8 @@ def addBtoO():
     boardIndex=selectedBoard[0]
     targetOrder=orderMgr.orderList[orderIndex]
     targetBoard=board_lib.board_list[boardIndex]
-    #2.弹出数量框
-    quantity = simpledialog.askinteger("输入数量", "请输入数量：", minvalue=1, maxvalue=1000)
+    #2.pop-up quantity box
+    quantity = simpledialog.askinteger("Input quantity", "Please input quantity：", minvalue=1, maxvalue=1000)
     if quantity is None:
         return
    
@@ -240,7 +240,7 @@ def delshowBoard():
 #=================================================================================
 
 
-####order frame 订单区=================================================================
+####order frame =================================================================
 frameOrder=ttk.LabelFrame(mainFrame,text="Order Management")
 frameOrder.pack(fill="x",padx=20,pady=10)
 #entry frame
@@ -283,7 +283,7 @@ btnexport.grid(row=1,column=4)
 
 
 
-#======================================板材区=================================================
+#======================================board frame=================================================
 frame_input=ttk.LabelFrame(mainFrame,text="Register New Board")
 frame_input.pack(fill="x",padx=20,pady=10)  #size
 
@@ -324,11 +324,11 @@ boardListbox.pack(fill="both",expand=True,padx=5,pady=5)
 
 
 
-#======================================加板区=================================================
+#======================================add board frame=================================================
 frameAddboard=ttk.LabelFrame(mainFrame,text="Add Board to Order")
 frameAddboard.pack(fill="x",padx=20,pady=10)
 
-#显示当前选中订单
+#Display the currently selected plate
 selectedOrder=ttk.Label(frameAddboard,text="Selected Order:None")
 selectedOrder.grid(row=0,column=0,padx=5,pady=8)
 
@@ -345,7 +345,7 @@ delbutt.grid(row=0,column=2,padx=5,pady=8)
 
 
 
-####clear selection==============================清空选择====================
+####clear selection==================================================
 
 def clearSelection(event):
     wclass = event.widget.winfo_class()
