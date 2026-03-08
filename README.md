@@ -1,2 +1,4 @@
-# COMP2090
-Task1 Task2
+# COMP2090 course project
+Task1 
+
+Task2
